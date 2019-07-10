@@ -7,10 +7,12 @@ const jwt = require('jsonwebtoken');
 
 const signup = async (req, res) => {
   console.log('in signup cont');
+  console.log('req.body:', req.body);
+  
   // let key = req.body 
-  // const data = JSON.parse(JSON.stringify(req.body));
   let data = JSON.parse(req.body)
   console.log('data:', data);
+  console.log('data parsed:', JSON.parse(JSON.stringify(req.body)));
   
   
   try {
