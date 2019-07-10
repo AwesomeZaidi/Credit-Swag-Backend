@@ -9,8 +9,9 @@ const signup = async (req, res) => {
   console.log('in signup cont');
   // let key = req.body 
   // const data = JSON.parse(JSON.stringify(req.body));
-  // console.log('data:', data);
-  console.log('req.body:', req.body);
+  let data = JSON.parse(req.body)
+  console.log('data:', data);
+  
   
   try {
     const email = req.body.email;
