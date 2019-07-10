@@ -7,9 +7,9 @@ const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
 const logger = require('morgan');
 const app = express();
-const port = process.env.PORT || 5000
-// const cors = require('cors');
-// app.use(cors());
+const port = process.env.PORT || 5000;
+const cors = require('cors');
+app.use(cors());
 // database connection
 require('./database/mongodb');
 
@@ -32,7 +32,7 @@ app.use(methodOverride((req, res) => {
 }));
 
 // app.use((req, res, next) => {
-//   res.header("Access-Control-Allow-Origin", 'localhost:3000');
+//   res.header("Access-Control-Allow-Origin", '*');
 //   res.header("Access-Control-Allow-Credentials", "true");
 //   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 //   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");

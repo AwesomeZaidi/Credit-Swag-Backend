@@ -6,6 +6,7 @@ const {
 const jwt = require('jsonwebtoken');
 
 const signup = async (req, res) => {
+  console.log('in signup cont');
   try {
     const email = req.body.email;
     let user = await User.findOne({email}, "email");
@@ -15,12 +16,15 @@ const signup = async (req, res) => {
     
     const newUser = new User(req.body); 
     await newUser.save();
+    console.log('newUser:', newUser);
     
     const token = jwt.sign({ _id: newUser._id }, process.env.SECRET, { expiresIn: "60 days" });   
     res.cookie('csToken', token, { maxAge: 900000, httpOnly: false });
 
     return res.status(200).json(newUser);
   } catch(err) {
+    console.log('err:', err);
+    
     res.status(401).send(err);
   }
 }
