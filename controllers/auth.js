@@ -30,9 +30,9 @@ const signup = async (req, res) => {
 }
 
 const login = async (req, res) => {
-  console.log('req.body:', req.body);
+  const data = JSON.parse(Object.keys(req.body)[0]);
   try {
-    const { email, password } = req.body;
+    const { email, password } = data;
     let user = await User.findOne({email}, "email password");
 
     if (!user) {
@@ -43,7 +43,7 @@ const login = async (req, res) => {
         if (!isMatch) {
           res.status(401).send('Wrong Email or Password');
         } else {
-          const token = jwt.sign({_id: user._id, username: user.username}, process.env.SECRET, { expiresIn: "60 days" });
+          const token = jwt.sign({_id: user._id, email: user.email}, process.env.SECRET, { expiresIn: "60 days" });
           res.cookie("csToken", token, {maxAge: 900000, httpOnly: false});
           return res.status(200).send(user);  
         }
