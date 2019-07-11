@@ -8,21 +8,17 @@ const jwt = require('jsonwebtoken');
 const signup = async (req, res) => {
   console.log('in signup cont');
   console.log('req.body:', req.body);
-  console.log('object keys:', Object.keys(req.body));
-  // let key = req.body 
-  let data = JSON.parse(req.body)
+  const data = JSON.parse(Object.keys(req.body)[0]);
   console.log('data:', data);
-  console.log('data parsed:', JSON.parse(JSON.stringify(req.body)));
-  
   
   try {
-    const email = req.body.email;
+    const email = data.email;
     let user = await User.findOne({email}, "email");
     if (user) {
       res.status(401).send('Account with this email already exists');
     };
     
-    const newUser = new User(req.body); 
+    const newUser = new User(data); 
     await newUser.save();
     console.log('newUser:', newUser);
     
