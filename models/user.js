@@ -16,7 +16,7 @@ let UserSchema = new Schema({
       message: `{VALUE} not a valid email`
     }
   },
-  publicKey: String,
+  public_token: String,
   // phoneNumber: { type: String, required: true },
   password: {
     type: String,
