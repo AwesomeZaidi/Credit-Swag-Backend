@@ -69,7 +69,7 @@ const get_access_token = async (request, response, next) => {
 
 // Retrieve Transactions for an Item
 // https://plaid.com/docs/#transactions
-const transactions = (request, response, next)  => {
+const transactions = async (request, response, next) => {
   console.log('in transactions');  
   // Pull transactions for the Item for the last 30 days
   var startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
