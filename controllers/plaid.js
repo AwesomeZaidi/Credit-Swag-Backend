@@ -58,7 +58,6 @@ const get_access_token = async (request, response, next) => {
       user.access_token = ACCESS_TOKEN;
       user.item_id = ITEM_ID;
       
-      prettyPrintResponse(tokenResponse);
       response.json({
         access_token: ACCESS_TOKEN,
         item_id: ITEM_ID,
@@ -68,5 +67,5 @@ const get_access_token = async (request, response, next) => {
 };
 
 module.exports = {
-    get_access_token,
+  get_access_token,
 }
