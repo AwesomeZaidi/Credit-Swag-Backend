@@ -57,7 +57,7 @@ const get_access_token = async (request, response, next) => {
       ITEM_ID = tokenResponse.item_id;
       user.access_token = ACCESS_TOKEN;
       user.item_id = ITEM_ID;
-      
+      user.save();
       response.json({
         access_token: ACCESS_TOKEN,
         item_id: ITEM_ID,
@@ -66,6 +66,32 @@ const get_access_token = async (request, response, next) => {
     });
 };
 
+// Retrieve Transactions for an Item
+// https://plaid.com/docs/#transactions
+const transactions = (request, response, next)  => {
+  console.log('in transactions');  
+  // Pull transactions for the Item for the last 30 days
+  var startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
+  var endDate = moment().format('YYYY-MM-DD');
+  let user = await User.findById(request.body.userId);
+  client.getTransactions(user.access_token, startDate, endDate, {
+    count: 250,
+    offset: 0,
+  }, function(error, transactionsResponse) {
+    if (error != null) {
+      // prettyPrintResponse(error);
+      return response.json({
+        error: error
+      });
+    } else {
+      // prettyPrintResponse(transactionsResponse);
+      console.log('transactionsResponse:', transactionsResponse);
+      response.json({error: null, transactions: transactionsResponse});
+    }
+  });
+};
+
 module.exports = {
   get_access_token,
+  transactions
 }
