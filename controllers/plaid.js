@@ -73,6 +73,10 @@ const transactions = async (request, response, next) => {
   var startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
   var endDate = moment().format('YYYY-MM-DD');
   let user = await User.findById(request.body.userId);
+  console.log('user:', user);
+  console.log('request.body:', request.body);
+  console.log('request.body.userId:', request.body.userId);
+  
   client.getTransactions(user.access_token, startDate, endDate, {
     count: 250,
     offset: 0,
