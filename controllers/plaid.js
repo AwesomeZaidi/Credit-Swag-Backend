@@ -39,13 +39,13 @@ var client = new plaid.Client(
 const get_access_token = async (request, response, next) => {
     console.log('here in cont');
     console.log('request.body.public_token:', request.body.public_token);
-    console.log('request.body.public_token:', request.body.public_token);
-    console.log('request.body.public_token:', request.body.userId);
+    console.log('request.body.userId:', request.body.userId);
     PUBLIC_TOKEN = request.body.public_token;
     let user = await User.findById(request.body.userId);
+    console.log('user:', user);
     user.public_token = PUBLIC_TOKEN;
     user.save();
-    client.exchangePublicToken(PUBLIC_TOKEN, function(error, tokenResponse) {        
+    client.exchangePublicToken(PUBLIC_TOKEN, function(error, tokenResponse) {
       if (error != null) {
         console.log('tokenResponse:', tokenResponse);
         prettyPrintResponse(error);
