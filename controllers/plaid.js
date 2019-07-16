@@ -3,51 +3,70 @@ const _ = require('lodash');
 const {
   User
 } = require('../models/user');
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
 const plaid = require('plaid');
-// const client_id = '5d280da44388c80013735b14';
-// const secret = 'd5df4201427a1cbec5de25ade9bf41';
-// const PLAID_PUBLIC_KEY = 'd5df4201427a1cbec5de25ade9bf41';
-// const PLAID_ENV = 'sandbox';
-// const plaidClient = new plaid.Client(client_id, secret, public_key, plaid_env, {version: '2018-05-22'});
-// PLAID_PUBLIC_KEY: PLAID_PUBLIC_KEY,
-// PLAID_ENV: PLAID_ENV,
-// PLAID_PRODUCTS: PLAID_PRODUCTS,
-// PLAID_COUNTRY_CODES: PLAID_COUNTRY_CODES,
 
-// Exchange token flow - exchange a Link public_token for
-// an API access_token
-// https://plaid.com/docs/#exchange-token-flow
+var APP_PORT = 8000;
+var PLAID_CLIENT_ID = '5d280da44388c80013735b14';
+var PLAID_SECRET = 'd5df4201427a1cbec5de25ade9bf41';
+var PLAID_PUBLIC_KEY = 'e7325291c9f6c0bdb72a3829865923';
+var PLAID_ENV = 'sandbox';
 
-const set_access_token = (req, res) => {
-    console.log('in plaid controller');
-    
-    // const plaidClient = new plaid.Client(
-    //     process.env.PLAID_CLIENT_ID,
-    //     process.env.PLAID_SECRET,
-    //     process.env.PUBLIC_KEY,
-    //     plaid.environments.sandbox,
-    //     {version: '2018-05-22'}
-    //   );
-    // console.log('plaidClient:', plaidClient);
-    
-    // client.exchangePublicToken(process.env.PUBLIC_TOKEN, function(error, tokenResponse) {
-    //   if (error != null) {
-    //     prettyPrintResponse(error);
-    //     return response.json({
-    //       error: error,
-    //     });
-    //   }
-    //   ACCESS_TOKEN = tokenResponse.access_token;
-    //   ITEM_ID = tokenResponse.item_id;
-    //   prettyPrintResponse(tokenResponse);
-    //   response.json({
-    //     access_token: ACCESS_TOKEN,
-    //     item_id: ITEM_ID,
-    //     error: null,
-    //   });
-    // });
-}
+// PLAID_PRODUCTS is a comma-separated list of products to use when initializing
+// Link. Note that this list must contain 'assets' in order for the app to be
+// able to create and retrieve asset reports.
+var PLAID_PRODUCTS = 'transactions';
+
+// PLAID_PRODUCTS is a comma-separated list of countries for which users
+// will be able to select institutions from.
+var PLAID_COUNTRY_CODES = 'US,CA,GB,FR,ES';
+
+// We store the access_token in memory - in production, store it in a secure
+// persistent data store
+var ACCESS_TOKEN = null;
+var PUBLIC_TOKEN = null;
+var ITEM_ID = null;
+
+var client = new plaid.Client(
+    PLAID_CLIENT_ID,
+    PLAID_SECRET,
+    PLAID_PUBLIC_KEY,
+    plaid.environments[PLAID_ENV],
+    {version: '2019-05-29', clientApp: 'Plaid Quickstart'}
+);
+
+
+const get_access_token = async (request, response, next) => {
+    console.log('here in cont');
+    console.log('request.body.public_token:', request.body.public_token);
+    console.log('request.body.public_token:', request.body.public_token);
+    console.log('request.body.public_token:', request.body.userId);
+    PUBLIC_TOKEN = request.body.public_token;
+    let user = await User.findById(request.body.userId);
+    user.public_token = PUBLIC_TOKEN;
+    user.save();
+    client.exchangePublicToken(PUBLIC_TOKEN, function(error, tokenResponse) {        
+      if (error != null) {
+        console.log('tokenResponse:', tokenResponse);
+        prettyPrintResponse(error);
+        return response.json({
+          error: error,
+        });
+      }
+      ACCESS_TOKEN = tokenResponse.access_token;
+      ITEM_ID = tokenResponse.item_id;
+      user.access_token = ACCESS_TOKEN;
+      user.item_id = ITEM_ID;
+      
+      prettyPrintResponse(tokenResponse);
+      response.json({
+        access_token: ACCESS_TOKEN,
+        item_id: ITEM_ID,
+        error: null,
+      });
+    });
+};
+
 module.exports = {
-    set_access_token,
+    get_access_token,
 }

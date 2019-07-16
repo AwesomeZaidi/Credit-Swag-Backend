@@ -5,6 +5,6 @@ const {
 
 } = require('../controllers/plaid');
 
-router.post('/set_access_token', set_access_token);
+router.post('/get_access_token', get_access_token);
 
 module.exports = router;
