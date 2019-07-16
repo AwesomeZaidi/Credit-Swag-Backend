@@ -31,21 +31,15 @@ app.use(methodOverride((req, res) => {
   };
 }));
 
-// app.use((req, res, next) => {
-//   res.header("Access-Control-Allow-Origin", '*');
-//   res.header("Access-Control-Allow-Credentials", "true");
-//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
-//   next();
-// });
-
 // routes
 app.get('/', (req, res) => {
   res.json('Welcome to the Credit Swag Backend API')
 });
 
 const auth = require('./routes/auth');
-app.use(auth)
+const plaid = require('./routes/plaid');
+app.use(auth);
+app.use(plaid);
 
 app.listen(port, () => {
   console.log(`Server listening on port: ${port}`)
