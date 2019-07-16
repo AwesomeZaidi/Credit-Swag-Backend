@@ -44,7 +44,6 @@ const get_access_token = async (request, response, next) => {
     let user = await User.findById(request.body.userId);
     console.log('user:', user);
     user.public_token = PUBLIC_TOKEN;
-    user.save();
     client.exchangePublicToken(PUBLIC_TOKEN, function(error, tokenResponse) {
       if (error != null) {
         console.log('tokenResponse:', tokenResponse);

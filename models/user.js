@@ -17,6 +17,8 @@ let UserSchema = new Schema({
     }
   },
   public_token: String,
+  access_token: String,
+  item_id: String,
   // phoneNumber: { type: String, required: true },
   password: {
     type: String,
