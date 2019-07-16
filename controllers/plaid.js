@@ -4,7 +4,6 @@ const {
   User
 } = require('../models/user');
 import moment from 'moment';
-// const jwt = require('jsonwebtoken');
 const plaid = require('plaid');
 
 var APP_PORT = 8000;
