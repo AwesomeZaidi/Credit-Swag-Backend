@@ -3,7 +3,7 @@ const _ = require('lodash');
 const {
   User
 } = require('../models/user');
-import moment from 'moment';
+const moment = require('moment');
 const plaid = require('plaid');
 
 var APP_PORT = 8000;
