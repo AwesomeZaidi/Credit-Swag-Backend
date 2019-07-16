@@ -1,7 +1,7 @@
 const router = require('express').Router();
 
 const {
-    set_access_token,
+    get_access_token,
 
 } = require('../controllers/plaid');
 
