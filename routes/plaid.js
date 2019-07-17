@@ -6,6 +6,6 @@ const {
 } = require('../controllers/plaid');
 
 router.post('/get_access_token', get_access_token);
-router.get('/transactions', transactions);
+router.post('/transactions', transactions);
 
 module.exports = router;
