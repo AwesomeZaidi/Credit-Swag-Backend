@@ -47,7 +47,7 @@ const get_access_token = async (request, response, next) => {
     client.exchangePublicToken(PUBLIC_TOKEN, function(error, tokenResponse) {
       if (error != null) {
         console.log('tokenResponse:', tokenResponse);
-        prettyPrintResponse(error);
+        // prettyPrintResponse(error);
         return response.json({
           error: error,
         });
