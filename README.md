@@ -13,3 +13,15 @@ For the Plaid API it looks like I need to hit the
 
 `POST /plaid/auth/get`
 Retrieve account and routing numbers for checking and savings accounts.
+
+
+## Models
+
+# User
+    - name
+    - email
+    - number
+    - password
+    - public_key (use this to make all their api calls)
+    
+

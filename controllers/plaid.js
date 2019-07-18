@@ -8,7 +8,7 @@ const plaid = require('plaid');
 
 var APP_PORT = 8000;
 var PLAID_CLIENT_ID = '5d280da44388c80013735b14';
-var PLAID_SECRET = 'd5df4201427a1cbec5de25ade9bf41';
+var PLAID_SECRET = 'c7122b47cb5c4066c9142338b155ef';
 var PLAID_PUBLIC_KEY = 'e7325291c9f6c0bdb72a3829865923';
 var PLAID_ENV = 'sandbox';
 
