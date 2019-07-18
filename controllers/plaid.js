@@ -1,25 +1,22 @@
 
-const _ = require('lodash');
-const {
-  User
-} = require('../models/user');
-const moment = require('moment');
-const plaid = require('plaid');
+// const _ = require('lodash');
+import { User } from '../models/user';
+import moment from 'moment';
+import { Client, environments } from 'plaid';
 
-var APP_PORT = 8000;
 var PLAID_CLIENT_ID = '5d280da44388c80013735b14';
 var PLAID_SECRET = 'c7122b47cb5c4066c9142338b155ef';
 var PLAID_PUBLIC_KEY = 'e7325291c9f6c0bdb72a3829865923';
-var PLAID_ENV = 'sandbox';
+var PLAID_ENV = 'development';
 
 // PLAID_PRODUCTS is a comma-separated list of products to use when initializing
 // Link. Note that this list must contain 'assets' in order for the app to be
 // able to create and retrieve asset reports.
-var PLAID_PRODUCTS = 'transactions';
+// var PLAID_PRODUCTS = 'transactions';
 
 // PLAID_PRODUCTS is a comma-separated list of countries for which users
 // will be able to select institutions from.
-var PLAID_COUNTRY_CODES = 'US,CA,GB,FR,ES';
+// var PLAID_COUNTRY_CODES = 'US,CA,GB,FR,ES';
 
 // We store the access_token in memory - in production, store it in a secure
 // persistent data store
@@ -27,16 +24,16 @@ var ACCESS_TOKEN = null;
 var PUBLIC_TOKEN = null;
 var ITEM_ID = null;
 
-var client = new plaid.Client(
+var client = new Client(
     PLAID_CLIENT_ID,
     PLAID_SECRET,
     PLAID_PUBLIC_KEY,
-    plaid.environments[PLAID_ENV],
+    environments[PLAID_ENV],
     {version: '2019-05-29', clientApp: 'Plaid Quickstart'}
 );
 
 
-const get_access_token = async (request, response, next) => {
+const get_access_token = async (request, response) => {
     console.log('here in cont');
     console.log('request.body.public_token:', request.body.public_token);
     console.log('request.body.userId:', request.body.userId);
@@ -67,7 +64,7 @@ const get_access_token = async (request, response, next) => {
 
 // Retrieve Transactions for an Item
 // https://plaid.com/docs/#transactions
-const transactions = async (request, response, next) => {
+const transactions = async (request, response) => {
   console.log('in transactions');  
   console.log('request.body:', request.body);
   console.log('request.body.userId:', request.body.userId);
@@ -93,7 +90,7 @@ const transactions = async (request, response, next) => {
   });
 };
 
-module.exports = {
+export default {
   get_access_token,
   transactions
 }
