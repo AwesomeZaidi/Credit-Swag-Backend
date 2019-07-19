@@ -1,4 +1,6 @@
 # Credit Swag
+
+
 ## Run Project locally
 1. Clone repository
 2. `cd` into root repo
@@ -24,6 +26,8 @@ Retrieve account and routing numbers for checking and savings accounts.
     - password
     - public_key (use this to make all their api calls)
     - CurrentBalance
+    - weeklyBalance: array of strings -> every day of the week
+    - standing -(oldBalance - CurrentBalance) / oldBalance
     - transactions (Array of Transaction document references)
     - upcomingBills (Array of Bill document references)
 
@@ -41,13 +45,17 @@ Retrieve account and routing numbers for checking and savings accounts.
     - image
     - recurring (boolean)
     - recurringType ('weekly', 'monthly', 'annually')?
-    - recurringDate (Date)
+
+# Notifications
+    - Mininum balance
+    - Overdraft 
+    - Bill Reminder
+    - Big transaction
 
 # Controller Logic
 
 - Get the transactions data and structure that data into our database models.
 - Allow the user to create a bill 
 - Check your if your balance if ever too low and you have a bill coming up, send a notification.
-
 
 Maybe after 1 month, we don't store the specific transactional data - but the overview numbers of your balance.

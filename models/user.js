@@ -25,7 +25,9 @@ let UserSchema = new Schema({
     required: true,
     // minlength: 6
   },
-  transactions: [{ type: Schema.Types.ObjectId, ref: "Transaction" }]
+  transactions: [],
+  // transactions: [{ type: Schema.Types.ObjectId, ref: "Transaction" }],
+  balances: [{ type: Schema.Types.ObjectId, ref: "Balance" }],
 }, {
   timestamps: true
 });
@@ -53,8 +55,4 @@ UserSchema.methods.comparePassword = function(password, done) {
   });
 };
 
-let User = mongoose.model('User', UserSchema);
-
-module.exports = {
-  User
-}
+module.exports = mongoose.model('User', UserSchema);
