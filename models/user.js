@@ -16,15 +16,16 @@ let UserSchema = new Schema({
       message: `{VALUE} not a valid email`
     }
   },
+  // Plaid
   public_token: String,
   access_token: String,
   item_id: String,
-  // phoneNumber: { type: String, required: true },
   password: {
     type: String,
     required: true,
     // minlength: 6
-  }
+  },
+  transactions: [{ type: Schema.Types.ObjectId, ref: "Transaction" }]
 }, {
   timestamps: true
 });

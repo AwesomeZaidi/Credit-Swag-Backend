@@ -15,13 +15,39 @@ For the Plaid API it looks like I need to hit the
 Retrieve account and routing numbers for checking and savings accounts.
 
 
-## Models
+# Models
 
-# User
+## User
     - name
     - email
     - number
     - password
     - public_key (use this to make all their api calls)
-    
+    - CurrentBalance
+    - transactions (Array of Transaction document references)
+    - upcomingBills (Array of Bill document references)
 
+## Transaction
+    - name
+    - price
+    - categories (array)
+    - prevBalance
+    - newBalance
+
+## Bill
+    - name
+    - price
+    - date
+    - image
+    - recurring (boolean)
+    - recurringType ('weekly', 'monthly', 'annually')?
+    - recurringDate (Date)
+
+# Controller Logic
+
+- Get the transactions data and structure that data into our database models.
+- Allow the user to create a bill 
+- Check your if your balance if ever too low and you have a bill coming up, send a notification.
+
+
+Maybe after 1 month, we don't store the specific transactional data - but the overview numbers of your balance.
