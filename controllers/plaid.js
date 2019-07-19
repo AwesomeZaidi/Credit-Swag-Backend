@@ -76,14 +76,16 @@ const transactions = async (request, response, next) => {
         error: error
       });
     } else { // Success
-      console.log('res.data.transactions.accounts[0]:', res.transactions.accounts[0]);
-      const currentBalance = res.transactions.accounts[0].available;
-      // let balance = new Balance({date: req.body.today, value: currentBalance});
-      let balance = new Balance({value: currentBalance});
-      balance.save();
-      user.balances.push(balance);
-      user.transactions = req.transactions.transactions;
-      user.save();
+      console.log('res.transactions:', res.transactions);
+      
+      // console.log('res.transactions.accounts[0]:', res.transactions.accounts[0]);
+      // const currentBalance = res.transactions.accounts[0].available;
+      // // let balance = new Balance({date: req.body.today, value: currentBalance});
+      // let balance = new Balance({value: currentBalance});
+      // balance.save();
+      // user.balances.push(balance);
+      // user.transactions = req.transactions.transactions;
+      // user.save();
       response.json({error: null, user});
     }
   });
