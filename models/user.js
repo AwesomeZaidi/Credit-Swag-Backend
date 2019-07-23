@@ -25,8 +25,8 @@ let UserSchema = new Schema({
     required: true,
     // minlength: 6
   },
+  currentBalance: String,
   transactions: [],
-  // transactions: [{ type: Schema.Types.ObjectId, ref: "Transaction" }],
   balances: [{ type: Schema.Types.ObjectId, ref: "Balance" }],
 }, {
   timestamps: true

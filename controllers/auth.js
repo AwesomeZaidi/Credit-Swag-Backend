@@ -4,7 +4,10 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 
 const signup = async (req, res) => {
-  const data = JSON.parse(Object.keys(req.body)[0]);
+  console.log('req.body:', req.body);
+  
+  const data = JSON.parse(Object.keys(req.body)[0]); // FUCKY PRODUCTION.
+  // const data = req.body; // NORMAL TESTING.
   try {
     const email = data.email;
     let user = await User.findOne({email}, "email ");
