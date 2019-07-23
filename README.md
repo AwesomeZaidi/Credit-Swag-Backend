@@ -26,7 +26,7 @@ Retrieve account and routing numbers for checking and savings accounts.
     - password
     - public_key (use this to make all their api calls)
     - CurrentBalance
-    - weeklyBalance: array of strings -> every day of the week
+    - balances: array of strings -> every day of the week
     - standing -(oldBalance - CurrentBalance) / oldBalance
     - transactions (Array of Transaction document references)
     - upcomingBills (Array of Bill document references)

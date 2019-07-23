@@ -2,15 +2,15 @@
 // const _ = require('lodash');
 const User = require('../models/user');
 // const Transaction = require('../models/transaction');
-const Balance = require('../models/balance');
+// const Balance = require('../models/balance');
 const moment = require('moment');
 const plaid = require('plaid');
 
 // var APP_PORT = 8000;
 var PLAID_CLIENT_ID = '5d280da44388c80013735b14';
-var PLAID_SECRET = 'c7122b47cb5c4066c9142338b155ef';
+var PLAID_SECRET = 'd5df4201427a1cbec5de25ade9bf41';
 var PLAID_PUBLIC_KEY = 'e7325291c9f6c0bdb72a3829865923';
-var PLAID_ENV = 'development';
+var PLAID_ENV = 'sandbox';
 
 // PLAID_PRODUCTS is a comma-separated list of products to use when initializing
 // Link. Note that this list must contain 'assets' in order for the app to be
@@ -76,16 +76,16 @@ const transactions = async (request, response, next) => {
         error: error
       });
     } else { // Success
-      console.log('res.transactions:', res.transactions);
-      console.log('res.transactions:', res.transactions.accounts);
-      
-      // console.log('res.transactions.accounts[0]:', res.transactions.accounts[0]);
-      // const currentBalance = res.transactions.accounts[0].balances.available;
+      // response.json(res); 
+      // console.log('res.transactions.accounts[0]:', res.accounts[0]);
+      const currentBalance = res.accounts[0].balances.available;
       // let balance = new Balance({date: req.body.today, value: currentBalance});
+      // later pass in from the request, the date.
       // let balance = new Balance({value: currentBalance});
       // balance.save();
+      user.currentBalance = currentBalance;
       // user.balances.push(balance);
-      // user.transactions = req.transactions.transactions;
+      user.transactions = res.transactions;
       user.save();
       response.json({error: null, user});
     }
