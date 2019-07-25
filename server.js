@@ -31,15 +31,20 @@ app.use(methodOverride((req, res) => {
   };
 }));
 
+// const checkAuth = require('./middleware/authorization');
+// app.use(checkAuth);
+const auth = require('./routes/auth');
+const plaidRoutes = require('./routes/plaid');
+
+app.use(auth);
+app.use(plaidRoutes);
+
 // routes
 app.get('/', (req, res) => {
+  // console.log('res.locals:', res.locals);
+  
   res.json('Welcome to the Credit Swag Backend API')
 });
-
-const auth = require('./routes/auth');
-const plaid = require('./routes/plaid');
-app.use(auth);
-app.use(plaid);
 
 app.listen(port, () => {
   console.log(`Server listening on port: ${port}`)

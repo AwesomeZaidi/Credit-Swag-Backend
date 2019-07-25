@@ -2,10 +2,10 @@
 // const _ = require('lodash');
 const User = require('../models/user');
 // const Transaction = require('../models/transaction');
-// const Balance = require('../models/balance');
+const Balance = require('../models/balance');
 const moment = require('moment');
 const plaid = require('plaid');
-
+const cron = require('node-cron');
 // var APP_PORT = 8000;
 var PLAID_CLIENT_ID = '5d280da44388c80013735b14';
 var PLAID_SECRET = 'd5df4201427a1cbec5de25ade9bf41';
@@ -35,7 +35,6 @@ var client = new plaid.Client(
     {version: '2019-05-29', clientApp: 'Plaid Quickstart'}
 );
 
-
 const get_access_token = async (request, response, next) => {
     PUBLIC_TOKEN = request.body.public_token;
     let user = await User.findById(request.body.userId);
@@ -60,10 +59,30 @@ const get_access_token = async (request, response, next) => {
     });
 };
 
+// // Cron job to recieve the budgets.
+var balanceCron = (req, res, user) => {
+  return (req, res) => {
+      // Pull real-time balance information for each account associated
+      // with the Item
+      client.getBalance(user.access_token, (err, result) => {
+        const accounts = result.accounts; 
+        const date = new Date();
+        const currentBalance = accounts[0].balances.available;
+        const balance = new Balance({date: date, value: currentBalance})
+        balance.save();
+        user.balances.push(balance);
+        console.log('user balances:', user.balances);
+        user.save();
+      });
+  };
+};
+
 // Retrieve Transactions for an Item
 // https://plaid.com/docs/#transactions
 const transactions = async (request, response, next) => {
   let user = await User.findById(request.body.userId);
+  cron.schedule("*/1 * * * *", balanceCron(request, response, user)).start();  
+
   // Pull transactions for the Item for the last 30 days
   var startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
   var endDate = moment().format('YYYY-MM-DD');
@@ -84,15 +103,20 @@ const transactions = async (request, response, next) => {
       // let balance = new Balance({value: currentBalance});
       // balance.save();
       user.currentBalance = currentBalance;
-      // user.balances.push(balance);
       user.transactions = res.transactions;
+      if (!user.balances) {
+        console.log('setting up users first balance record');
+        const balance = new Balance({date: new Date(), currentBalance: currentBalance});
+        balance.save();
+        user.balances.push(balance);
+      };
       user.save();
       response.json({error: null, user});
-    }
+    };
   });
 };
 
 module.exports = {
   get_access_token,
   transactions
-}
+};
