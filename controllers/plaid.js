@@ -1,12 +1,10 @@
+// plaid.js
 
-// const _ = require('lodash');
 const User = require('../models/user');
-// const Transaction = require('../models/transaction');
 const Balance = require('../models/balance');
 const moment = require('moment');
 const plaid = require('plaid');
 const cron = require('node-cron');
-// var APP_PORT = 8000;
 var PLAID_CLIENT_ID = '5d280da44388c80013735b14';
 var PLAID_SECRET = 'd5df4201427a1cbec5de25ade9bf41';
 var PLAID_PUBLIC_KEY = 'e7325291c9f6c0bdb72a3829865923';
@@ -41,7 +39,6 @@ const get_access_token = async (request, response, next) => {
     user.public_token = PUBLIC_TOKEN;
     client.exchangePublicToken(PUBLIC_TOKEN, function(error, tokenResponse) {
       if (error != null) {
-        // prettyPrintResponse(error);
         return response.json({
           error: error,
         });
@@ -59,21 +56,59 @@ const get_access_token = async (request, response, next) => {
     });
 };
 
-// // Cron job to recieve the budgets.
-var balanceCron = (req, res, user) => {
+// Retrieve user freindly balance graph data
+const getBalanceGraphData = async (req, res, userId) => {
+  // Time complexity: SLOW ASF MAN  FUCK.
+  // We should ASK DANI FOR FEEEEEEEEEEDBACK!!!!!!!!!!!!!! 😃
+  const data = await User.findById(req.body.userId).populate('balances');
+  // const locations = await Restaurant.findById(req.restaurantId).populate('locations'); 
+  let balancesData = data.balances;
+
+  // Now we need to convert this list of objects into two lists.
+  
+  // List dates that goes through all the objects and pushes the dates.
+  // List values that goes through all the objects and pushes the values.
+  let dates = [];
+  let values = [];
+  // WHAT THE FUCK.
+  for (let i = 0; i < balancesData;  i++) {
+    console.log('here');
+    
+    console.log(balancesData);
+    
+    dates.push(balancesData[i].date);
+    values.push(balancesData[i].values);
+  }
+  console.log('dates:', dates);
+  console.log('values:', values);
+
+  res.json('HELLO')
+}
+
+// Cron job to recieve the budgets.
+const balanceCron = (req, res, user) => {
   return (req, res) => {
-      // Pull real-time balance information for each account associated
-      // with the Item
-      client.getBalance(user.access_token, (err, result) => {
-        const accounts = result.accounts; 
+    const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
+    const endDate = moment().format('YYYY-MM-DD');
+    client.getTransactions(user.access_token, startDate, endDate, {
+      count: 250,
+      offset: 0,
+    }, function(error, res) {
+      if (error != null) {
+        return response.json({
+          error: error
+        });
+      } else { // Successful response (res)
         const date = new Date();
-        const currentBalance = accounts[0].balances.available;
+        const currentBalance = res.accounts[0].balances.available;
+        //TODO: later change model attrib name from value to currentBalance.
         const balance = new Balance({date: date, value: currentBalance})
         balance.save();
         user.balances.push(balance);
-        console.log('user balances:', user.balances);
         user.save();
-      });
+        response.json({error: null, user});
+      };
+    });
   };
 };
 
@@ -95,13 +130,7 @@ const transactions = async (request, response, next) => {
         error: error
       });
     } else { // Success
-      // response.json(res); 
-      // console.log('res.transactions.accounts[0]:', res.accounts[0]);
       const currentBalance = res.accounts[0].balances.available;
-      // let balance = new Balance({date: req.body.today, value: currentBalance});
-      // later pass in from the request, the date.
-      // let balance = new Balance({value: currentBalance});
-      // balance.save();
       user.currentBalance = currentBalance;
       user.transactions = res.transactions;
       if (!user.balances) {
@@ -118,5 +147,6 @@ const transactions = async (request, response, next) => {
 
 module.exports = {
   get_access_token,
-  transactions
+  transactions,
+  getBalanceGraphData
 };
