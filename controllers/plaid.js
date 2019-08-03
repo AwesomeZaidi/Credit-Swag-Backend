@@ -57,32 +57,12 @@ const get_access_token = async (request, response, next) => {
 };
 
 // Retrieve user freindly balance graph data
-const getBalanceGraphData = async (req, res, userId) => {
-  // Time complexity: SLOW ASF MAN  FUCK.
-  // We should ASK DANI FOR FEEEEEEEEEEDBACK!!!!!!!!!!!!!! 😃
+const getBalanceGraphData = async (req, res) => {
   const data = await User.findById(req.body.userId).populate('balances');
-  // const locations = await Restaurant.findById(req.restaurantId).populate('locations'); 
-  let balancesData = data.balances;
-
-  // Now we need to convert this list of objects into two lists.
-  
-  // List dates that goes through all the objects and pushes the dates.
-  // List values that goes through all the objects and pushes the values.
-  let dates = [];
-  let values = [];
-  // WHAT THE FUCK.
-  for (let i = 0; i < balancesData;  i++) {
-    console.log('here');
-    
-    console.log(balancesData);
-    
-    dates.push(balancesData[i].date);
-    values.push(balancesData[i].values);
-  }
-  console.log('dates:', dates);
-  console.log('values:', values);
-
-  res.json('HELLO')
+  data ?
+    res.json(data.balances)
+  : 
+  res.status(500);
 }
 
 // Cron job to recieve the budgets.
@@ -106,7 +86,7 @@ const balanceCron = (req, res, user) => {
         balance.save();
         user.balances.push(balance);
         user.save();
-        response.json({error: null, user});
+        res.json({error: null, user});
       };
     });
   };
