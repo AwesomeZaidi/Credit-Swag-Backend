@@ -92,27 +92,6 @@ const balanceCron = (req, res, user) => {
   };
 };
 
-
-// // // Cron job to recieve the budgets.
-// var balanceCron = (req, res, user) => {
-//   return (req, res) => {
-//       // Pull real-time balance information for each account associated
-//       // with the Item
-//       client.getBalance(user.access_token, (err, result) => {
-//         const accounts = result.accounts; 
-//         const date = new Date();
-//         const currentBalance = accounts[0].balances.available;
-//         const balance = new Balance({date: date, value: currentBalance})
-//         balance.save();
-//         user.balances.push(balance);
-//         console.log('user balances:', user.balances);
-//         user.save();
-//       });
-//   };
-// };
-
-
-
 // Retrieve Transactions for an Item
 // https://plaid.com/docs/#transactions
 const transactions = async (request, response, next) => {
