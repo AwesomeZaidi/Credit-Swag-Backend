@@ -8,6 +8,6 @@ const {
 
 router.post('/get_access_token', get_access_token);
 router.post('/transactions', transactions);
-router.get('/getBalanceGraphData', getBalanceGraphData);
+router.post('/getBalanceGraphData', getBalanceGraphData);
 
 module.exports = router;
