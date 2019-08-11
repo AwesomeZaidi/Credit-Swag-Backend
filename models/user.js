@@ -19,6 +19,7 @@ let UserSchema = new Schema({
   // Plaid
   public_token: String,
   access_token: String,
+  notificationToken: String,
   item_id: String,
   password: {
     type: String,
@@ -28,6 +29,7 @@ let UserSchema = new Schema({
   currentBalance: String,
   transactions: [],
   balances: [{ type: Schema.Types.ObjectId, ref: "Balance" }],
+  savingGoals: [{ type: Schema.Types.ObjectId, ref: "SavingGoal" }],
 }, {
   timestamps: true
 });
