@@ -9,6 +9,8 @@ var PLAID_CLIENT_ID = '5d280da44388c80013735b14';
 var PLAID_SECRET = 'd5df4201427a1cbec5de25ade9bf41';
 var PLAID_PUBLIC_KEY = 'e7325291c9f6c0bdb72a3829865923';
 var PLAID_ENV = 'sandbox';
+const axios = require('axios');
+const { Expo } = require('expo-server-sdk');
 
 // PLAID_PRODUCTS is a comma-separated list of products to use when initializing
 // Link. Note that this list must contain 'assets' in order for the app to be
@@ -92,15 +94,19 @@ const balanceCron = (req, res, user) => {
   };
 };
 
+
 // Retrieve Transactions for an Item
 // https://plaid.com/docs/#transactions
 const transactions = async (request, response, next) => {
   let user = await User.findById(request.body.userId);
-  cron.schedule("*/1 * * * *", balanceCron(request, response, user)).start();  
+  
+  // STEP 2
 
-  // Pull transactions for the Item for the last 30 days
-  var startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
-  var endDate = moment().format('YYYY-MM-DD');
+  cron.schedule("20 * * * *", balanceCron(request, response, user)).start();  
+
+  const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
+  const endDate = moment().format('YYYY-MM-DD');
+
   client.getTransactions(user.access_token, startDate, endDate, {
     count: 250,
     offset: 0,
@@ -113,15 +119,96 @@ const transactions = async (request, response, next) => {
       const currentBalance = res.accounts[0].balances.available;
       user.currentBalance = currentBalance;
       user.transactions = res.transactions;
-      if (!user.balances) {
-        const balance = new Balance({date: new Date(), currentBalance: currentBalance});
-        balance.save();
+
+      if (user.balances.length == 0) {
+        const balance = new Balance({date: new Date(), value: currentBalance});
+        balance.save();        
         user.balances.push(balance);
+        user.save();
       };
-      user.save();
       response.json({error: null, user});
     };
   });
+
+  // // STEP 3
+  // if (user.notificationToken) {
+  //   const pushTokens = [user.notificationToken]
+  //   // Create a new Expo SDK client
+  //   let expo = new Expo();
+    
+  //   // Create the messages that you want to send to clents
+  //   let messages = [];
+  //   for (let pushToken of pushTokens) {
+  //     // Each push token looks like ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
+    
+  //     // Check that all your push tokens appear to be valid Expo push tokens
+  //     if (!Expo.isExpoPushToken(pushToken)) {
+  //       console.error(`Push token ${pushToken} is not a valid Expo push token`);
+  //       continue;
+  //     }
+    
+  //     // Construct a message (see https://docs.expo.io/versions/latest/guides/push-notifications.html)
+  //     messages.push({
+  //       to: pushToken,
+  //       sound: 'default',
+  //       body: 'This is a test notification',
+  //       data: { withSome: 'data' },
+  //     })
+  //   }
+    
+  //   let chunks = expo.chunkPushNotifications(messages);
+  //   let tickets = [];
+  //   (async () => {
+  //     for (let chunk of chunks) {
+  //       try {
+  //         let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+  //         tickets.push(...ticketChunk);
+  //       } catch (error) {
+  //         console.error(error);
+  //       }
+  //     }
+  //   })();
+    
+  //   let receiptIds = [];
+  //   for (let ticket of tickets) {
+  //     // NOTE: Not all tickets have IDs; for example, tickets for notifications
+  //     // that could not be enqueued will have error information and no receipt ID.
+  //     if (ticket.id) {
+  //       receiptIds.push(ticket.id);
+  //     }
+  //   }
+    
+  //   let receiptIdChunks = expo.chunkPushNotificationReceiptIds(receiptIds);
+  //   (async () => {
+  //     // Like sending notifications, there are different strategies you could use
+  //     // to retrieve batches of receipts from the Expo service.
+  //     for (let chunk of receiptIdChunks) {
+  //       try {
+  //         let receipts = await expo.getPushNotificationReceiptsAsync(chunk);
+  //         console.log(receipts);
+    
+  //         // The receipts specify whether Apple or Google successfully received the
+  //         // notification and information about an error, if one occurred.
+  //         for (let receipt of receipts) {
+  //           if (receipt.status === 'ok') {
+  //             continue;
+  //           } else if (receipt.status === 'error') {
+  //             console.error(`There was an error sending a notification: ${receipt.message}`);
+  //             if (receipt.details && receipt.details.error) {
+  //               // The error codes are listed in the Expo documentation:
+  //               // https://docs.expo.io/versions/latest/guides/push-notifications#response-format
+  //               // You must handle the errors appropriately.
+  //               console.error(`The error code is ${receipt.details.error}`);
+  //             }
+  //           }
+  //         }
+  //       } catch (error) {
+  //         console.error(error);
+  //       }
+  //     }
+  //   })();
+  // }
+
 };
 
 module.exports = {
