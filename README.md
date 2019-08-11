@@ -54,8 +54,17 @@ Retrieve account and routing numbers for checking and savings accounts.
 
 # Controller Logic
 
-- Get the transactions data and structure that data into our database models.
-- Allow the user to create a bill 
+- ✅ Get the transactions data and structure that data into our database models.
+- Allow the user to create a bill: Create Bill obj with name, amount, date and time and reccurance and when they wanna be notified or not about it.
 - Check your if your balance if ever too low and you have a bill coming up, send a notification.
 
+<!-- New -->    
+- 
+- When we pull the user transaction data, if the balance is lower than 0, can we send a trigger to the client and a notification?
+
 Maybe after 1 month, we don't store the specific transactional data - but the overview numbers of your balance.
+
+
+For the monthly, chunck it into chunks 5
+
+Think of it week to week and once 
