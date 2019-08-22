@@ -8,7 +8,7 @@ const cron = require('node-cron');
 const PLAID_CLIENT_ID = '5d280da44388c80013735b14';
 const PLAID_SECRET = 'd5df4201427a1cbec5de25ade9bf41';
 const PLAID_PUBLIC_KEY = 'e7325291c9f6c0bdb72a3829865923';
-const PLAID_ENV = 'sandbox';
+var PLAID_ENV = 'sandbox';
 const { Expo } = require('expo-server-sdk');
 
 var ACCESS_TOKEN = null;
@@ -16,11 +16,11 @@ var PUBLIC_TOKEN = null;
 var ITEM_ID = null;
 
 var client = new plaid.Client(
-    PLAID_CLIENT_ID,
-    PLAID_SECRET,
-    PLAID_PUBLIC_KEY,
-    plaid.environments[PLAID_ENV],
-    {version: '2019-05-29', clientApp: 'Plaid Quickstart'}
+  PLAID_CLIENT_ID,
+  PLAID_SECRET,
+  PLAID_PUBLIC_KEY,
+  plaid.environments[PLAID_ENV],
+  {version: '2019-05-29', clientApp: 'Plaid Quickstart'}
 );
 
 const get_access_token = async (request, response, next) => {
@@ -56,14 +56,42 @@ const getBalanceGraphData = async (req, res) => {
 };
 
 // Cron job to recieve the budgets.
-const balanceCron = (req, res, user) => {
+// const balanceCron = (req, res, user) => {
+//   return (req, res) => {
+//     const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
+//     const endDate = moment().format('YYYY-MM-DD');
+//     client.getTransactions(user.access_token, startDate, endDate, {
+//       count: 250,
+//       offset: 0,
+//     }, (error, res) => {
+//       if (error != null) {
+//         return res.json({
+//           error: error
+//         });
+//       } else { // Successful response (res)
+//         const date = new Date();
+//         const currentBalance = res.accounts[0].balances.available;
+//         //TODO: later change model attrib name from value to currentBalance.
+//         const balance = new Balance({date: date, value: currentBalance})
+//         balance.save();
+//         user.balances.push(balance);
+//         user.save();
+//         // response.json({error: null, user});
+//       };
+//     });
+//   };
+// };
+
+// // Cron job to recieve the budgets.
+var balanceCron = (req, res, user) => {
   return (req, res) => {
+    console.log('here');    
     const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
     const endDate = moment().format('YYYY-MM-DD');
     client.getTransactions(user.access_token, startDate, endDate, {
       count: 250,
       offset: 0,
-    }, function(error, res) {
+    }, (error, res) => {
       if (error != null) {
         return res.json({
           error: error
@@ -71,15 +99,11 @@ const balanceCron = (req, res, user) => {
       } else { // Successful response (res)
         const date = new Date();
         const currentBalance = res.accounts[0].balances.available;
-        //TODO: later change model attrib name from value to currentBalance.
         const balance = new Balance({date: date, value: currentBalance})
-        console.log('new balance =', balance);
-        
-        sendNotification(user, currentBalance);
         balance.save();
+        sendNotification(user, currentBalance);
         user.balances.push(balance);
         user.save();
-        // response.json({error: null, user});
 
         // User has a list of objects (Saving Limits)
         // Go through the new transactions returned from this function, literally loop through them
@@ -94,18 +118,23 @@ const balanceCron = (req, res, user) => {
   };
 };
 
+// tracks user location in foreground, sends location, then geo
+// see them all on a map
+// when they enter their office, they get checked in.
+// if they're outside of it, 
+// they login, enter whats a schedule
+
 const transactions = async (request, response, next) => {
   let user = await User.findById(request.body.userId);
-  
   // STEP 2
-  cron.schedule("*/1 * * * *", balanceCron(request, response, user)).start();  
+  cron.schedule("'*/5 * * * * *'", balanceCron(request, response, user)).start();  
 
   const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
   const endDate = moment().format('YYYY-MM-DD');
   client.getTransactions(user.access_token, startDate, endDate, {
     count: 250,
     offset: 0,
-  }, function(error, res) {
+  }, (error, res) => {
     if (error != null) {
       return response.json({
         error: error
@@ -127,7 +156,7 @@ const transactions = async (request, response, next) => {
 };
 
 const sendNotification = (user, balance) => {
-  if (balance <= 0) {
+  if (balance < 0) {
     if (user.notificationToken) {
       const pushTokens = [user.notificationToken]      
       // Create a new Expo SDK client
