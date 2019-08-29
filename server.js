@@ -35,14 +35,13 @@ app.use(methodOverride((req, res) => {
 // app.use(checkAuth);
 const auth = require('./routes/auth');
 const plaidRoutes = require('./routes/plaid');
+const notificationRoutes = require('./routes/notification');
 
 app.use(auth);
 app.use(plaidRoutes);
+app.use(notificationRoutes);
 
-// routes
 app.get('/', (req, res) => {
-  // console.log('res.locals:', res.locals);
-  
   res.json('Welcome to the Credit Swag Backend API')
 });
 

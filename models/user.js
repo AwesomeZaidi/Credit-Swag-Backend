@@ -4,8 +4,7 @@ const validator = require('validator');
 const bcrypt = require('bcryptjs')
 
 let UserSchema = new Schema({
-  // firstName: { type: String, required: true }, add this later.
-  // lastName: { type: String, required: true }, once the client has been connected successfully.
+  name: { type: String, required: true },
   email: {
     type: String,
     required: true,
@@ -20,11 +19,15 @@ let UserSchema = new Schema({
   public_token: String,
   access_token: String,
   notificationToken: String,
+  overdraftNotification: {type: Boolean, default: false},
+  minimumBalanceNotification: {type: Boolean, default: false},
+  minimumBalanceAmount: {type: Number, default: 50},
+  bigTransactionNotification: {type: Boolean, default: false},
+  bigTransactionAmount: {type: Number, default: 50},
   item_id: String,
   password: {
     type: String,
     required: true,
-    // minlength: 6
   },
   currentBalance: String,
   transactions: [],
