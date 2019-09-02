@@ -22,13 +22,14 @@ const signup = async (req, res) => {
 
     return res.status(200).json(newUser);
   } catch(err) {
-    console.log('err:', err);
     res.status(401).send(err);
   }
 }
 
 const login = async (req, res) => {
-  const data = JSON.parse(Object.keys(req.body)[0]);
+  // const data = JSON.parse(Object.keys(req.body)[0]);
+  const data = req.body; // NORMAL TESTING.
+
   try {
     const { email, password } = data;
     let user = await User.findOne({email}, "email password public_key");
