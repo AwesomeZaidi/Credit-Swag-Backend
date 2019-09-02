@@ -12,7 +12,6 @@ const createSavingGoal = (req, res) => {
         user.save();
         return res.json(user);
     } catch(e) {
-        console.log('e:', e);
         return res.json('Something went wrong, please try again or contact support.');
     }
 };
