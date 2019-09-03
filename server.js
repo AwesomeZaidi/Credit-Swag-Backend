@@ -37,11 +37,13 @@ const auth = require('./routes/auth');
 const plaidRoutes = require('./routes/plaid');
 const notificationRoutes = require('./routes/notification');
 const billRoutes = require('./routes/bill');
+const goalRoutes = require('./routes/goal');
 
 app.use(auth);
 app.use(plaidRoutes);
 app.use(notificationRoutes);
 app.use(billRoutes);
+app.use(goalRoutes);
 
 app.get('/', (req, res) => {
   res.json('Welcome to the Credit Swag Backend API 🤑💻')
