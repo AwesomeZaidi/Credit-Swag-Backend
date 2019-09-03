@@ -3,11 +3,8 @@ const _ = require('lodash');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 
-const signup = async (req, res) => {
-  // console.log('req.body:', req.body);
-  
-  // const data = JSON.parse(Object.keys(req.body)[0]); // FUCKY PRODUCTION.
-  const data = req.body; // NORMAL TESTING.
+const signup = async (req, res) => {  
+  const data = req.body;
   try {
     const email = data.email;
     let user = await User.findOne({email}, "email notificationToken");
@@ -19,7 +16,6 @@ const signup = async (req, res) => {
     await newUser.save();
     const token = jwt.sign({ _id: newUser._id }, process.env.SECRET, { expiresIn: "60 days" });   
     res.cookie('csToken', token, { maxAge: 900000, httpOnly: false });
-
     return res.status(200).json(newUser);
   } catch(err) {
     res.status(401).send(err);
@@ -27,13 +23,11 @@ const signup = async (req, res) => {
 }
 
 const login = async (req, res) => {
-  // const data = JSON.parse(Object.keys(req.body)[0]);
-  const data = req.body; // NORMAL TESTING.
+  const data = req.body;
 
   try {
     const { email, password } = data;
     let user = await User.findOne({email}, "email password public_key");
-
     if (!user) {
       res.status(401).send('Wrong Email');
     };
@@ -48,18 +42,11 @@ const login = async (req, res) => {
         }
     });
   } catch (err) {
-    res.status(401).send(err);
+    res.status(500).send(err);
   }
-};
-
-//LOGOUT
-const logout = (req, res) => {
-  res.clearCookie('csToken');
-  return res.status(200).send('User logged out.');
 };
 
 module.exports = {
   signup,
-  login,
-  logout
+  login
 }
