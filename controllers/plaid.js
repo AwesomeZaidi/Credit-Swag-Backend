@@ -8,14 +8,14 @@ const cron = require('node-cron');
 const PLAID_CLIENT_ID = '5d280da44388c80013735b14';
 const PLAID_SECRET = 'd5df4201427a1cbec5de25ade9bf41';
 const PLAID_PUBLIC_KEY = 'e7325291c9f6c0bdb72a3829865923';
-var PLAID_ENV = 'sandbox';
+const PLAID_ENV = 'sandbox';
 const { Expo } = require('expo-server-sdk');
 
 var ACCESS_TOKEN = null;
 var PUBLIC_TOKEN = null;
 var ITEM_ID = null;
 
-var client = new plaid.Client(
+const client = new plaid.Client(
   PLAID_CLIENT_ID,
   PLAID_SECRET,
   PLAID_PUBLIC_KEY,
@@ -83,8 +83,8 @@ const getBalanceGraphData = async (req, res) => {
 // };
 
 // // Cron job to recieve the budgets.
-var balanceCron = (req, res, user) => {
-  return (req, res) => {  
+const balanceCron = (req, res, user) => {
+  return (req, res) => {
     const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
     const endDate = moment().format('YYYY-MM-DD');
     client.getTransactions(user.access_token, startDate, endDate, {
@@ -117,25 +117,11 @@ var balanceCron = (req, res, user) => {
             }
           });
         };
-
-        // User has a list of objects (Saving Limits)
-        // Go through the new transactions returned from this function, literally loop through them
-        // and if we find anyones that match the MO for any of the doc refs, create a temp buffer to
-        // hold that counter value, that counter value should constantly be compared to the doc ref
-        // value and if at any point, the value goes over, send this alert below and save the var name
-        // and message for each I guess, case... to pass in  dynmaically.
-
-        // During this nightly pull, also check if the balance has overdrafted. If so, send Notification.
+        
       };
     });
   };
 };
-
-// tracks user location in foreground, sends location, then geo
-// see them all on a map
-// when they enter their office, they get checked in.
-// if they're outside of it, 
-// they login, enter whats a schedule
 
 const transactions = async (request, response, next) => {
   let user = await User.findById(request.body.userId);
