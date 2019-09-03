@@ -1,9 +1,12 @@
 const router = require('express').Router();
 
 const {
-    createSavingGoal,
+    addGoal,
+    getSavingGoals
 } = require('../controllers/goal');
 
-router.post('/createSavingGoal', createSavingGoal);
+router.post('/addGoal', addGoal);
+router.post('/getSavingGoals', getSavingGoals);
+
 
 module.exports = router;
