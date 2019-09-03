@@ -13,6 +13,7 @@ module.exports = {
     "ecmaVersion": 2018
   },
   "rules": {
-    "object-curly-newline": "off" // One liners are dope
+    "object-curly-newline": "off", // One liners are dope
+    "no-underscore-dangle": "off"  // mongoose ._id prop
   }
 };
