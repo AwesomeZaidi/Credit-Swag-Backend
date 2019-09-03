@@ -33,7 +33,8 @@ let UserSchema = new Schema({
   transactions: [],
   balances: [{ type: Schema.Types.ObjectId, ref: "Balance" }],
   bills: [{ type: Schema.Types.ObjectId, ref: "Bill" }],
-  savingGoals: [{ type: Schema.Types.ObjectId, ref: "SavingGoal" }],
+  savingGoals: [],
+  // savingGoals: [{ type: Schema.Types.ObjectId, ref: "SavingGoal" }],
 }, {
   timestamps: true
 });
