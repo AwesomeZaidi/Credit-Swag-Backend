@@ -1,5 +1,6 @@
 // controllers/goal.js
 
+
 const _ = require('lodash');
 const User = require('../models/user');
 // const Goal = require('../models/savingGoal');
@@ -25,18 +26,18 @@ const addGoal = async (req, res) => {
         const limit = Number(req.body.goalData.limit);
         const category = req.body.goalData.category;    
         const date = req.body.goalData.date;  
-        // const goal = new Goal({name, limit, category, date});
         const goal = {
             name: name,
             limit: limit,
             category: category,
-            date: date
+            date: date,
+            health: 0,
+            spendings: []
         }
         let user = await User.findById(req.body.userId); 
         user.savingGoals.push(goal);
-        // goal.save();
         user.save();
-        return res.json(goal);
+        return res.json({user, goal});
     } catch(e) {
         return res.json('Something went wrong, please try again or contact support.');
     }
@@ -45,42 +46,61 @@ const addGoal = async (req, res) => {
 const getSavingGoals = async (req, res) => {
     let user = await User.findById(req.body.userId); 
     let savingGoals = user.savingGoals;
-    if (savingGoals) {
-        const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
-        const endDate = moment().format('YYYY-MM-DD');
-        client.getTransactions(user.access_token, startDate, endDate, {
-          count: 250,
-          offset: 0,
-        }, (error, res) => {
-          if (error != null) {
-            return res.json({
-              error: error
-            });
-          } else {
-                const transactions = res.transactions;
-                let updatedGoals = [];
-                savingGoals.map((goal) => {
-                    goal.health = 0; // reset the value!
-                    transactions.map((transaction) => {
-                        let categories = transactions.category;
-                        Array(categories).map((category) => {
-                            if (category === goal.category) {
-                                goal.health += transaction.amount // found a category match, increment the goal amnt!
-                            }
-                        })
-                    });
-                    updatedGoals.push(goal)
-                });
-                console.log('updatedGoals:', updatedGoals);
-            };
+    return res.json(savingGoals);
+};
+
+const getTransactions = async (req, res, next) => {
+    let user = await User.findById(req.body.userId);
+    let goal = user.savingGoals[req.body.goalIndex];
+    const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
+    const endDate = moment().format('YYYY-MM-DD');
+    let _ = await client.getTransactions(user.access_token, startDate, endDate, { count: 250, offset: 0 }, (error, res) => {
+        if (error != null) {
+        return response.json({
+            error
         });
-        res.status(200)
-    } else {
-        res.status(500);
-    }
-  };
+        } else {
+        let transactions = res.transactions;
+        goal.spendings = [] // important to reset it here.
+        transactions.forEach((transaction) => { 
+            let categories = transaction.category;
+            if (categories.includes(goal.category)) {
+                goal.spendings.push(
+                    {
+                        amount: transaction.amount,
+                        date: transaction.date
+                    }
+                )
+            }
+        })
+        user.savingGoals[req.body.goalIndex] = goal;
+        req.savingGoals = user.savingGoals
+        req.user = req.user;
+        next();
+        };
+    });
+}
+
+const fetchGoal = async (req,  res) => {
+    const savingGoals = req.savingGoals;
+    let user = await User.findById(req.body.userId);
+    user.savingGoals = savingGoals;
+    user.save();   
+    res.json(user);
+};
   
 module.exports = {
     addGoal,
-    getSavingGoals
+    fetchGoal,
+    getSavingGoals,
+    getTransactions
 };
+
+
+// We need this whenever:
+
+// Creates a goal - you actually need to do this calculation
+// right at that point and show the loading icon as the network req happens.
+
+// Anytime they hit the page, they should see where they're at for today
+// and we can do this in our existing cron jobs transactional api request.
