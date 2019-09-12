@@ -46,7 +46,7 @@ const get_access_token = async (request, response, next) => {
     });
 };
 
-// Retrieve user freindly balance graph data
+// Retrieve balance graph data easily.
 const getBalanceGraphData = async (req, res) => {
   const data = await User.findById(req.body.userId).populate('balances');
   data ?
@@ -55,34 +55,6 @@ const getBalanceGraphData = async (req, res) => {
   res.status(500);
 };
 
-// Cron job to recieve the budgets.
-// const balanceCron = (req, res, user) => {
-//   return (req, res) => {
-//     const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
-//     const endDate = moment().format('YYYY-MM-DD');
-//     client.getTransactions(user.access_token, startDate, endDate, {
-//       count: 250,
-//       offset: 0,
-//     }, (error, res) => {
-//       if (error != null) {
-//         return res.json({
-//           error: error
-//         });
-//       } else { // Successful response (res)
-//         const date = new Date();
-//         const currentBalance = res.accounts[0].balances.available;
-//         //TODO: later change model attrib name from value to currentBalance.
-//         const balance = new Balance({date: date, value: currentBalance})
-//         balance.save();
-//         user.balances.push(balance);
-//         user.save();
-//         // response.json({error: null, user});
-//       };
-//     });
-//   };
-// };
-
-// // Cron job to recieve the budgets.
 const balanceCron = (req, res, user) => {
   return (req, res) => {
     const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
@@ -95,7 +67,8 @@ const balanceCron = (req, res, user) => {
         return res.json({
           error: error
         });
-      } else { // Successful response (res)
+      } else {
+        // We update the balances once a day for the client graph here.
         const date = new Date();
         const currentBalance = res.accounts[0].balances.available;
         const balance = new Balance({date: date, value: currentBalance})
@@ -106,26 +79,24 @@ const balanceCron = (req, res, user) => {
         
         if (user.overdraftNotification && user.notificationToken) {
           if (user.overdraftNotification && balance <= 0) {
-            sendOverdraftNotification(user, currentBalance, "Uh Oh! You over drafted 🥵👎 Add money to your account before the bank charges you in the morning!");
+            sendNotification(user, "Uh Oh! You over drafted 🥵👎 Add money to your account before the bank charges you in the morning!");
           }
           if (user.minimumBalanceNotification && balance < user.minimumBalanceAmount) {
-            minimumBalanceNotification(user, currentBalance, `Uh Oh! You hit your minimum balance of ${user.minimumBalanceNotification} 🥵👎`);
+            sendNotification(user, `Uh Oh! You hit your minimum balance of ${user.minimumBalanceNotification} 🥵👎`);
           }
           res.transactions.map((transaction, _) => {
             if (transaction.amount > user.bigTransactionAmount) {
-              sendBigTransactionNotification(user, currentBalance, `Uh Oh! This purchase ${transaction.category[0]} of exceeded your limit ${user.bigTransactionAmount} 🥵👎`);
+              sendNotification(user, `Uh Oh! This purchase ${transaction.category[0]} of exceeded your limit ${user.bigTransactionAmount} 🥵👎`);
             }
           });
         };
-        
       };
     });
   };
 };
 
-const transactions = async (request, response, next) => {
+const transactions = async (request, response) => {
   let user = await User.findById(request.body.userId);
-  // STEP 2
 
   cron.schedule('0 0 0 * * *', () => 
     balanceCron(request, response, user), {
@@ -153,13 +124,17 @@ const transactions = async (request, response, next) => {
         balance.save();        
         user.balances.push(balance);
         user.save();
+        let data = user.populate('balances');
+        return response.json({user, balances: data.balances});
       };
-      response.json({error: null, user});
+
+      user.save();
+      return response.json({user});
     };
   });
 };
 
-const sendNotification = (user, balance, message) => {
+const sendNotification = (user, message) => {
   const pushTokens = [user.notificationToken]    
   // Create a new Expo SDK client
   let expo = new Expo();
@@ -242,3 +217,25 @@ module.exports = {
   transactions,
   getBalanceGraphData
 };
+
+
+// Should include this function later when we wanna optimize like how often this  api is called,
+// right now though in the goal controller, i just call it anytime that route is hit.
+// const getSavingGoalsAmounts = (req, res, user) => {
+//   const transactions = res.transactions;
+//   let updatedGoals = [];
+//   savingGoals.map((goal) => {
+//       goal.health = 0; // reset the value!
+//       transactions.map((transaction) => {
+//           let categories = transactions.category;
+//           Array(categories).map((category) => {
+//               if (category === goal.category) {
+//                   goal.health += transaction.amount // found a category match, increment the goal amnt!
+//               }
+//           })
+//       });
+//       updatedGoals.push(goal);
+//       user.savingGoals = updatedGoals;
+//       user.save()   
+//   });
+// };
