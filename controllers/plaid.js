@@ -46,7 +46,7 @@ const get_access_token = async (request, response, next) => {
         item_id: ITEM_ID,
         error: null,
       });
-    }
+
     ACCESS_TOKEN = tokenResponse.access_token;
     ITEM_ID = tokenResponse.item_id;
     user.access_token = ACCESS_TOKEN;
