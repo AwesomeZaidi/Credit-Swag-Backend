@@ -3,11 +3,12 @@
 const moment = require('moment');
 const plaid = require('plaid');
 const cron = require('node-cron');
-
-const PLAID_CLIENT_ID = '5d280da44388c80013735b14';
-const PLAID_SECRET = 'd5df4201427a1cbec5de25ade9bf41';
-const PLAID_PUBLIC_KEY = 'e7325291c9f6c0bdb72a3829865923';
-const PLAID_ENV = 'sandbox';
+const PLAID_CLIENT_ID = '5d7da1d5f793f300137e8ff3'; // USE IN SANDBOX AND DEV
+// const PLAID_SECRET = 'enternewhere - using techmade plaid account now, old account fucked.'; // USE IN SANDBOX
+const PLAID_SECRET = '978024e80a84d06687224c6e186ab5'; // USE IN DEV
+const PLAID_PUBLIC_KEY = 'f04faf8b95bc5d5e0357791a52b40c'; // USE IN SANDBOX AND DEV
+// const PLAID_ENV = 'sandbox';
+const PLAID_ENV = 'development';
 const { Expo } = require('expo-server-sdk');
 const Balance = require('../models/balance');
 const User = require('../models/user');
@@ -21,17 +22,29 @@ const client = new plaid.Client(
   PLAID_SECRET,
   PLAID_PUBLIC_KEY,
   plaid.environments[PLAID_ENV],
-  { version: '2019-05-29', clientApp: 'Plaid Quickstart' },
+  {version: '2019-05-29', clientApp: 'Credit Swag'}
 );
 
 const get_access_token = async (request, response, next) => {
-  PUBLIC_TOKEN = request.body.public_token;
-  const user = await User.findById(request.body.userId);
-  user.public_token = PUBLIC_TOKEN;
-  client.exchangePublicToken(PUBLIC_TOKEN, (error, tokenResponse) => {
-    if (error != null) {
-      return response.json({
-        error,
+    PUBLIC_TOKEN = request.body.public_token;
+    let user = await User.findById(request.body.userId);
+    user.public_token = PUBLIC_TOKEN;
+    client.exchangePublicToken(PUBLIC_TOKEN, function(error, tokenResponse) {
+      if (error != null) {
+        return response.json({
+          error: error,
+        });
+      }
+      ACCESS_TOKEN = tokenResponse.access_token;      
+      ITEM_ID = tokenResponse.item_id;
+      user.access_token = ACCESS_TOKEN;
+      user.item_id = ITEM_ID;
+      user.finishedPlaidSetup = true;
+      user.save();
+      response.json({
+        access_token: ACCESS_TOKEN,
+        item_id: ITEM_ID,
+        error: null,
       });
     }
     ACCESS_TOKEN = tokenResponse.access_token;
@@ -47,7 +60,7 @@ const get_access_token = async (request, response, next) => {
   });
 };
 
-// Retrieve user freindly balance graph data
+// Retrieve balance graph data easily.
 const getBalanceGraphData = async (req, res) => {
   const data = await User.findById(req.body.userId).populate('balances');
   data
@@ -55,73 +68,48 @@ const getBalanceGraphData = async (req, res) => {
     : res.status(500);
 };
 
-// Cron job to recieve the budgets.
-// const balanceCron = (req, res, user) => {
-//   return (req, res) => {
-//     const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
-//     const endDate = moment().format('YYYY-MM-DD');
-//     client.getTransactions(user.access_token, startDate, endDate, {
-//       count: 250,
-//       offset: 0,
-//     }, (error, res) => {
-//       if (error != null) {
-//         return res.json({
-//           error: error
-//         });
-//       } else { // Successful response (res)
-//         const date = new Date();
-//         const currentBalance = res.accounts[0].balances.available;
-//         //TODO: later change model attrib name from value to currentBalance.
-//         const balance = new Balance({date: date, value: currentBalance})
-//         balance.save();
-//         user.balances.push(balance);
-//         user.save();
-//         // response.json({error: null, user});
-//       };
-//     });
-//   };
-// };
-
-// // Cron job to recieve the budgets.
-const balanceCron = (req, res, user) => (req, res) => {
-  const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
-  const endDate = moment().format('YYYY-MM-DD');
-  client.getTransactions(user.access_token, startDate, endDate, {
-    count: 250,
-    offset: 0,
-  }, (error, res) => {
-    if (error != null) {
-      return res.json({
-        error,
-      });
-    } // Successful response (res)
-    const date = new Date();
-    const currentBalance = res.accounts[0].balances.available;
-    const balance = new Balance({ date, value: currentBalance });
-
-    balance.save();
-    user.balances.push(balance);
-    user.save();
-
-    if (user.overdraftNotification && user.notificationToken) {
-      if (user.overdraftNotification && balance <= 0) {
-        sendOverdraftNotification(user, currentBalance, 'Uh Oh! You over drafted 🥵👎 Add money to your account before the bank charges you in the morning!');
-      }
-      if (user.minimumBalanceNotification && balance < user.minimumBalanceAmount) {
-        minimumBalanceNotification(user, currentBalance, `Uh Oh! You hit your minimum balance of ${user.minimumBalanceNotification} 🥵👎`);
-      }
-      res.transactions.map((transaction, _) => {
-        if (transaction.amount > user.bigTransactionAmount) {
-          sendBigTransactionNotification(user, currentBalance, `Uh Oh! This purchase ${transaction.category[0]} of exceeded your limit ${user.bigTransactionAmount} 🥵👎`);
-        }
-      });
-    }
-  });
+const balanceCron = (req, res, user) => {
+  return (req, res) => {
+    const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
+    const endDate = moment().format('YYYY-MM-DD');
+    client.getTransactions(user.access_token, startDate, endDate, {
+      count: 250,
+      offset: 0,
+    }, (error, res) => {
+      if (error != null) {
+        return res.json({
+          error: error
+        });
+      } else {
+        // We update the balances once a day for the client graph here.
+        const date = new Date();
+        const currentBalance = res.accounts[0].balances.available;
+        const balance = new Balance({date: date, value: currentBalance})
+        
+        balance.save();
+        user.balances.push(balance);
+        user.save();
+        
+        if (user.overdraftNotification && user.notificationToken) {
+          if (user.overdraftNotification && balance <= 0) {
+            sendNotification(user, "Uh Oh! You over drafted 🥵👎 Add money to your account before the bank charges you in the morning!");
+          }
+          if (user.minimumBalanceNotification && balance < user.minimumBalanceAmount) {
+            sendNotification(user, `Uh Oh! You hit your minimum balance of ${user.minimumBalanceNotification} 🥵👎`);
+          }
+          res.transactions.map((transaction, _) => {
+            if (transaction.amount > user.bigTransactionAmount) {
+              sendNotification(user, `Uh Oh! This purchase ${transaction.category[0]} of exceeded your limit ${user.bigTransactionAmount} 🥵👎`);
+            }
+          });
+        };
+      };
+    });
+  };
 };
 
-const transactions = async (request, response, next) => {
-  const user = await User.findById(request.body.userId);
-  // STEP 2
+const transactions = async (request, response) => {
+  let user = await User.findById(request.body.userId);
 
   cron.schedule('0 0 0 * * *', () => balanceCron(request, response, user), {
     scheduled: true,
@@ -138,23 +126,28 @@ const transactions = async (request, response, next) => {
       return response.json({
         error,
       });
-    } // Success
-    const currentBalance = res.accounts[0].balances.available;
-    user.currentBalance = currentBalance;
-    user.transactions = res.transactions;
+    } else { // Success
+      const currentBalance = res.accounts[0].balances.available;
+      user.currentBalance = currentBalance;
+      user.transactions = res.transactions;
 
-    if (user.balances.length == 0) {
-      const balance = new Balance({ date: new Date(), value: currentBalance });
-      balance.save();
-      user.balances.push(balance);
+      if (user.balances.length == 0) {
+        const balance = new Balance({date: new Date(), value: currentBalance});
+        balance.save();        
+        user.balances.push(balance);
+        user.save();
+        let data = user.populate('balances');
+        return response.json({user, balances: data.balances});
+      };
+
       user.save();
-    }
-    response.json({ error: null, user });
+      return response.json({user});
+    };
   });
 };
 
-const sendNotification = (user, balance, message) => {
-  const pushTokens = [user.notificationToken];
+const sendNotification = (user, message) => {
+  const pushTokens = [user.notificationToken]    
   // Create a new Expo SDK client
   const expo = new Expo();
 
@@ -236,3 +229,25 @@ module.exports = {
   transactions,
   getBalanceGraphData,
 };
+
+
+// Should include this function later when we wanna optimize like how often this  api is called,
+// right now though in the goal controller, i just call it anytime that route is hit.
+// const getSavingGoalsAmounts = (req, res, user) => {
+//   const transactions = res.transactions;
+//   let updatedGoals = [];
+//   savingGoals.map((goal) => {
+//       goal.health = 0; // reset the value!
+//       transactions.map((transaction) => {
+//           let categories = transactions.category;
+//           Array(categories).map((category) => {
+//               if (category === goal.category) {
+//                   goal.health += transaction.amount // found a category match, increment the goal amnt!
+//               }
+//           })
+//       });
+//       updatedGoals.push(goal);
+//       user.savingGoals = updatedGoals;
+//       user.save()   
+//   });
+// };

@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const {
   signup,
-  login
+  login,
 } = require('../controllers/auth');
 
 router.post('/signup', signup);

@@ -35,7 +35,7 @@ const UserSchema = new Schema({
   balances: [{ type: Schema.Types.ObjectId, ref: 'Balance' }],
   bills: [{ type: Schema.Types.ObjectId, ref: 'Bill' }],
   savingGoals: [],
-  // savingGoals: [{ type: Schema.Types.ObjectId, ref: "SavingGoal" }],
+  finishedPlaidSetup: {type: Boolean, default: false}
 }, {
   timestamps: true,
 });
