@@ -1,7 +1,5 @@
 // plaid.js
 
-const User = require('../models/user');
-const Balance = require('../models/balance');
 const moment = require('moment');
 const plaid = require('plaid');
 const cron = require('node-cron');
@@ -12,10 +10,12 @@ const PLAID_PUBLIC_KEY = 'f04faf8b95bc5d5e0357791a52b40c'; // USE IN SANDBOX AND
 // const PLAID_ENV = 'sandbox';
 const PLAID_ENV = 'development';
 const { Expo } = require('expo-server-sdk');
+const Balance = require('../models/balance');
+const User = require('../models/user');
 
-var ACCESS_TOKEN = null;
-var PUBLIC_TOKEN = null;
-var ITEM_ID = null;
+let ACCESS_TOKEN = null;
+let PUBLIC_TOKEN = null;
+let ITEM_ID = null;
 
 const client = new plaid.Client(
   PLAID_CLIENT_ID,
@@ -46,16 +46,26 @@ const get_access_token = async (request, response, next) => {
         item_id: ITEM_ID,
         error: null,
       });
+    }
+    ACCESS_TOKEN = tokenResponse.access_token;
+    ITEM_ID = tokenResponse.item_id;
+    user.access_token = ACCESS_TOKEN;
+    user.item_id = ITEM_ID;
+    user.save();
+    response.json({
+      access_token: ACCESS_TOKEN,
+      item_id: ITEM_ID,
+      error: null,
     });
+  });
 };
 
 // Retrieve balance graph data easily.
 const getBalanceGraphData = async (req, res) => {
   const data = await User.findById(req.body.userId).populate('balances');
-  data ?
-    res.json(data.balances)
-  : 
-  res.status(500);
+  data
+    ? res.json(data.balances)
+    : res.status(500);
 };
 
 const balanceCron = (req, res, user) => {
@@ -101,10 +111,9 @@ const balanceCron = (req, res, user) => {
 const transactions = async (request, response) => {
   let user = await User.findById(request.body.userId);
 
-  cron.schedule('0 0 0 * * *', () => 
-    balanceCron(request, response, user), {
-      scheduled: true,
-      timezone: "America/Sao_Paulo"
+  cron.schedule('0 0 0 * * *', () => balanceCron(request, response, user), {
+    scheduled: true,
+    timezone: 'America/Sao_Paulo',
   }).start();
 
   const startDate = moment().subtract(30, 'days').format('YYYY-MM-DD');
@@ -115,7 +124,7 @@ const transactions = async (request, response) => {
   }, (error, res) => {
     if (error != null) {
       return response.json({
-        error: error
+        error,
       });
     } else { // Success
       const currentBalance = res.accounts[0].balances.available;
@@ -140,62 +149,62 @@ const transactions = async (request, response) => {
 const sendNotification = (user, message) => {
   const pushTokens = [user.notificationToken]    
   // Create a new Expo SDK client
-  let expo = new Expo();
-  
+  const expo = new Expo();
+
   // Create the messages that you want to send to clients
-  let messages = [];
-  for (let pushToken of pushTokens) {
+  const messages = [];
+  for (const pushToken of pushTokens) {
     // Each push token looks like ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
-  
+
     // Check that all your push tokens appear to be valid Expo push tokens
     if (!Expo.isExpoPushToken(pushToken)) {
       console.error(`Push token ${pushToken} is not a valid Expo push token`);
       continue;
     }
-  
+
     // Construct a message (see https://docs.expo.io/versions/latest/guides/push-notifications.html)
     messages.push({
       to: pushToken,
       sound: 'default',
       body: message,
       data: { withSome: 'data' },
-    })
+    });
   }
-  
-  let chunks = expo.chunkPushNotifications(messages);
-  let tickets = [];
+
+  const chunks = expo.chunkPushNotifications(messages);
+  const tickets = [];
   (async () => {
-    for (let chunk of chunks) {
+    for (const chunk of chunks) {
       try {
-        let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+        const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
         tickets.push(...ticketChunk);
       } catch (error) {
         console.error(error);
       }
     }
   })();
-  
-  let receiptIds = [];
-  for (let ticket of tickets) {
+
+  const receiptIds = [];
+  for (const ticket of tickets) {
     // NOTE: Not all tickets have IDs; for example, tickets for notifications
     // that could not be enqueued will have error information and no receipt ID.
     if (ticket.id) {
       receiptIds.push(ticket.id);
     }
   }
-  
-  let receiptIdChunks = expo.chunkPushNotificationReceiptIds(receiptIds);
+
+  const receiptIdChunks = expo.chunkPushNotificationReceiptIds(receiptIds);
   (async () => {
     // Like sending notifications, there are different strategies you could use
     // to retrieve batches of receipts from the Expo service.
-    for (let chunk of receiptIdChunks) {
+    for (const chunk of receiptIdChunks) {
       try {
-        let receipts = await expo.getPushNotificationReceiptsAsync(chunk);
+        const receipts = await expo.getPushNotificationReceiptsAsync(chunk);
         console.log(receipts);
-  
+
         // The receipts specify whether Apple or Google successfully received the
         // notification and information about an error, if one occurred.
-        for (let receipt of receipts) {
+        for (const receipt of receipts) {
           if (receipt.status === 'ok') {
             continue;
           } else if (receipt.status === 'error') {
@@ -218,7 +227,7 @@ const sendNotification = (user, message) => {
 module.exports = {
   get_access_token,
   transactions,
-  getBalanceGraphData
+  getBalanceGraphData,
 };
 
 

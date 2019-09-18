@@ -8,6 +8,7 @@
 4. Remove the `sample` on the filename so it is your own `.env` file. 
 5. `npm i`
 6. `nodemon server.js`
+7. In another terminal tab, ngrok run `./ngrok http 5000` then take that https url and go to the client redux folded actions, index and replace the `baseUrl` 
 
 ## Plaid API Research
 
