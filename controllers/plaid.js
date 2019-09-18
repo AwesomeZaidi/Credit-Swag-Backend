@@ -35,13 +35,14 @@ const get_access_token = async (request, response, next) => {
           error: error,
         });
       }
+      
       ACCESS_TOKEN = tokenResponse.access_token;      
       ITEM_ID = tokenResponse.item_id;
       user.access_token = ACCESS_TOKEN;
       user.item_id = ITEM_ID;
       user.finishedPlaidSetup = true;
       user.save();
-      response.json({
+      return response.json({
         access_token: ACCESS_TOKEN,
         item_id: ITEM_ID,
         error: null,
@@ -52,7 +53,7 @@ const get_access_token = async (request, response, next) => {
     user.access_token = ACCESS_TOKEN;
     user.item_id = ITEM_ID;
     user.save();
-    response.json({
+    return response.json({
       access_token: ACCESS_TOKEN,
       item_id: ITEM_ID,
       error: null,
@@ -63,9 +64,11 @@ const get_access_token = async (request, response, next) => {
 // Retrieve balance graph data easily.
 const getBalanceGraphData = async (req, res) => {
   const data = await User.findById(req.body.userId).populate('balances');
-  data
-    ? res.json(data.balances)
-    : res.status(500);
+  if(data) {
+    return res.json(data.balances)
+  } else {
+    return res.status(500);
+  }
 };
 
 const balanceCron = (req, res, user) => {
