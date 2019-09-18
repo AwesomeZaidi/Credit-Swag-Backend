@@ -26,7 +26,7 @@ const login = async (req, res) => {
 
   try {
     const { email, password } = data;
-    let user = await User.findOne({email}, "email password public_key access_token currentBalance minimumBalanceNotification minimumBalanceAmount overdraftNotification bigTransactionNotification bigTransactionAmount transactions balances bills savingGoals name notificationToken");    
+    let user = await User.findOne({email}, "email password public_key finishedPlaidSetup access_token currentBalance minimumBalanceNotification minimumBalanceAmount overdraftNotification bigTransactionNotification bigTransactionAmount transactions balances bills savingGoals name notificationToken");    
     if (!user) {
       return res.status(401).send('Wrong Email');
     };
