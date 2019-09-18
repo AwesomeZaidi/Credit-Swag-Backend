@@ -5,10 +5,12 @@ const Balance = require('../models/balance');
 const moment = require('moment');
 const plaid = require('plaid');
 const cron = require('node-cron');
-const PLAID_CLIENT_ID = '5d280da44388c80013735b14';
-const PLAID_SECRET = 'd5df4201427a1cbec5de25ade9bf41';
-const PLAID_PUBLIC_KEY = 'e7325291c9f6c0bdb72a3829865923';
-const PLAID_ENV = 'sandbox';
+const PLAID_CLIENT_ID = '5d7da1d5f793f300137e8ff3'; // USE IN SANDBOX AND DEV
+// const PLAID_SECRET = 'enternewhere - using techmade plaid account now, old account fucked.'; // USE IN SANDBOX
+const PLAID_SECRET = '978024e80a84d06687224c6e186ab5'; // USE IN DEV
+const PLAID_PUBLIC_KEY = 'f04faf8b95bc5d5e0357791a52b40c'; // USE IN SANDBOX AND DEV
+// const PLAID_ENV = 'sandbox';
+const PLAID_ENV = 'development';
 const { Expo } = require('expo-server-sdk');
 
 var ACCESS_TOKEN = null;
@@ -20,7 +22,7 @@ const client = new plaid.Client(
   PLAID_SECRET,
   PLAID_PUBLIC_KEY,
   plaid.environments[PLAID_ENV],
-  {version: '2019-05-29', clientApp: 'Plaid Quickstart'}
+  {version: '2019-05-29', clientApp: 'Credit Swag'}
 );
 
 const get_access_token = async (request, response, next) => {
@@ -33,10 +35,11 @@ const get_access_token = async (request, response, next) => {
           error: error,
         });
       }
-      ACCESS_TOKEN = tokenResponse.access_token;
+      ACCESS_TOKEN = tokenResponse.access_token;      
       ITEM_ID = tokenResponse.item_id;
       user.access_token = ACCESS_TOKEN;
       user.item_id = ITEM_ID;
+      user.finishedPlaidSetup = true;
       user.save();
       response.json({
         access_token: ACCESS_TOKEN,
