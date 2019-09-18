@@ -7,17 +7,24 @@ const User = require('../models/user');
 const plaid = require('plaid');
 const moment = require('moment');
 
-const PLAID_CLIENT_ID = '5d280da44388c80013735b14';
-const PLAID_SECRET = 'd5df4201427a1cbec5de25ade9bf41';
-const PLAID_PUBLIC_KEY = 'e7325291c9f6c0bdb72a3829865923';
-const PLAID_ENV = 'sandbox';
+const PLAID_CLIENT_ID = '5d7da1d5f793f300137e8ff3'; // USE IN SANDBOX AND DEV
+// const PLAID_SECRET = 'enternewhere - using techmade plaid account now, old account fucked.'; // USE IN SANDBOX
+const PLAID_SECRET = '978024e80a84d06687224c6e186ab5'; // USE IN DEV
+const PLAID_PUBLIC_KEY = 'f04faf8b95bc5d5e0357791a52b40c'; // USE IN SANDBOX AND DEV
+// const PLAID_ENV = 'sandbox';
+const PLAID_ENV = 'development';
+const { Expo } = require('expo-server-sdk');
+
+var ACCESS_TOKEN = null;
+var PUBLIC_TOKEN = null;
+var ITEM_ID = null;
 
 const client = new plaid.Client(
-    PLAID_CLIENT_ID,
-    PLAID_SECRET,
-    PLAID_PUBLIC_KEY,
-    plaid.environments[PLAID_ENV],
-    {version: '2019-05-29', clientApp: 'Plaid Quickstart'}
+  PLAID_CLIENT_ID,
+  PLAID_SECRET,
+  PLAID_PUBLIC_KEY,
+  plaid.environments[PLAID_ENV],
+  {version: '2019-05-29', clientApp: 'Credit Swag'}
 );
 
 const addGoal = async (req, res) => {
@@ -62,6 +69,7 @@ const getTransactions = async (req, res, next) => {
         } else {
         let transactions = res.transactions;
         goal.spendings = [] // important to reset it here.
+        goal.health = 0;
         transactions.forEach((transaction) => { 
             let categories = transaction.category;
             if (categories.includes(goal.category)) {
@@ -70,9 +78,15 @@ const getTransactions = async (req, res, next) => {
                         amount: transaction.amount,
                         date: transaction.date
                     }
-                )
+                )   
+                goal.health += transaction.amount
             }
         })
+
+        let num = goal.health;
+        num = Number(num);
+        num = num.toFixed(2)
+        goal.health = num;
         user.savingGoals[req.body.goalIndex] = goal;
         req.savingGoals = user.savingGoals
         req.user = req.user;
