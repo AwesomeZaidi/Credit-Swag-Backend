@@ -35,7 +35,6 @@ const get_access_token = async (request, response, next) => {
           error: error,
         });
       }
-      
       ACCESS_TOKEN = tokenResponse.access_token;      
       ITEM_ID = tokenResponse.item_id;
       user.access_token = ACCESS_TOKEN;
@@ -47,17 +46,6 @@ const get_access_token = async (request, response, next) => {
         item_id: ITEM_ID,
         error: null,
       });
-
-    ACCESS_TOKEN = tokenResponse.access_token;
-    ITEM_ID = tokenResponse.item_id;
-    user.access_token = ACCESS_TOKEN;
-    user.item_id = ITEM_ID;
-    user.save();
-    return response.json({
-      access_token: ACCESS_TOKEN,
-      item_id: ITEM_ID,
-      error: null,
-    });
   });
 };
 
