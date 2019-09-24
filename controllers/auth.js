@@ -20,7 +20,8 @@ async function signup(req, res) {
 
 async function login(req, res) {
   try {
-    const { email, password } = data;
+    const data = req.body;
+    const { email, password } = data;    
     let user = await User.findOne({email}, "email password public_key finishedPlaidSetup access_token currentBalance minimumBalanceNotification minimumBalanceAmount overdraftNotification bigTransactionNotification bigTransactionAmount transactions balances bills savingGoals name notificationToken");    
     if (!user) {
       return res.status(401).send('Wrong Email');
@@ -31,7 +32,7 @@ async function login(req, res) {
           return res.status(401).send('Wrong Email or Password');
         } else {
           // const token = jwt.sign({_id: user._id, email: user.email}, process.env.SECRET, { expiresIn: "60 days" });
-          // res.cookie("csToken", token, {maxAge: 900000, httpOnly: false});
+          // res.cookie("csToken", token, {maxAge: 900000, httpOnly: false});          
           return res.json({user});  
         }
     });

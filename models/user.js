@@ -54,13 +54,10 @@ UserSchema.pre('save', function hashPassword(next) {
   });
 });
 
-UserSchema.methods.validatePassword = function validateUserPassword(password) {
-  return new Promise((resolve, reject) => {
-    bcrypt.compare(password, this.password, (err, isMatch) => {
-      if (err) reject(err);
-      resolve(isMatch);
-    });
+UserSchema.methods.comparePassword = function(password, done) {
+  bcrypt.compare(password, this.password, (err, isMatch) => {
+    done(err, isMatch);
   });
-};
+}; //ends comparePassword
 
 module.exports = mongoose.model('User', UserSchema);
